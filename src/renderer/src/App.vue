@@ -1,24 +1,31 @@
-<script setup>
-import Versions from './components/Versions.vue'
+<template>
+  <!-- 使用 el-config-provider 配置 Element Plus 的全局设置 -->
+  <!-- locale: 设置语言为中文 -->
+  <!-- message: 配置消息的最大显示数量 -->
+  <el-config-provider :locale="zhCn" :message="config">
+    <!-- 所有通过路由渲染的组件都能继承 Element Plus 的全局配置 -->
+    <router-view />
+  </el-config-provider>
+</template>
 
-const ipcHandle = () => window.electron.ipcRenderer.send('ping')
+<script setup>
+// 导入 Vue 的相关功能
+import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
+// 获取当前组件实例的代理对象
+const { proxy } = getCurrentInstance()
+
+// 导入 Element Plus 的配置提供者和中文语言包
+import { ElConfigProvider } from 'element-plus'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
+
+// 设置语言为中文
+const locale = zhCn
+
+// 配置消息的最大显示数量为 1
+const config = reactive({
+  max: 1
+})
 </script>
 
-<template>
-  <img alt="logo" class="logo" src="./assets/electron.svg" />
-  <div class="creator">Powered by electron-vite</div>
-  <div class="text">
-    Build an Electron app with
-    <span class="vue">Vue</span>
-  </div>
-  <p class="tip">Please try pressing <code>F12</code> to open the devTool</p>
-  <div class="actions">
-    <div class="action">
-      <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">Documentation</a>
-    </div>
-    <div class="action">
-      <a target="_blank" rel="noreferrer" @click="ipcHandle">Send IPC</a>
-    </div>
-  </div>
-  <Versions />
-</template>
+<style lang="less">
+</style>
