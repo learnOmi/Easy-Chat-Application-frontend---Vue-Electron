@@ -1,6 +1,6 @@
 <template>
   <div class="login-panel">
-    <div class="title drag">登录</div>
+    <div class="title drag">{{isLogin?'登录':'注册'}}</div>
     <div class="login-form">
       <div class="error-ms"></div>
       <el-form
@@ -21,6 +21,16 @@
             <template #prefix><icon class="iconfont icon-youxiang" /></template>
           </el-input>
         </el-form-item>
+        <el-form-item prop="nickname" v-if="!isLogin">
+          <el-input
+            size="large"
+            clearable
+            placeholder="请输入昵称"
+            v-model.trim="formData.nickname"
+          >
+            <template #prefix><icon class="iconfont icon-geren" /></template>
+          </el-input>
+        </el-form-item>
         <el-form-item prop="password">
           <el-input
             size="large"
@@ -28,6 +38,17 @@
             show-password
             placeholder="请输入密码"
             v-model.trim="formData.password"
+          >
+            <template #prefix><icon class="iconfont icon-quanxian" /></template>
+          </el-input>
+        </el-form-item>
+        <el-form-item prop="repassword" v-if="!isLogin">
+          <el-input
+            size="large"
+            clearable
+            show-password
+            placeholder="请再次输入密码"
+            v-model.trim="formData.repassword"
           >
             <template #prefix><icon class="iconfont icon-quanxian" /></template>
           </el-input>
@@ -44,10 +65,10 @@
           </el-input>
         </el-form-item>
         <el-form-item prop="">
-          <el-button type="primary" class="login-btn" @click="">登录</el-button>
+          <el-button type="primary" class="login-btn" @click="">{{isLogin? '登录': '注册'}}</el-button>
         </el-form-item>
         <div class="bottom-link">
-          <span class="a-link" href="javascript:void(0)" @click="">没有账号?</span>
+          <span class="a-link" href="javascript:void(0)" @click="changeOpType">{{isLogin? '没有账号?': '已有账号'}}</span>
         </div>
       </el-form>
     </div>
@@ -63,10 +84,15 @@ const formDataRef = ref();
 const rules = {
   title: [{ required: true, message: "请输入内容" }],
 };
+
+const isLogin = ref(true);
+const changeOpType = () => {
+  window.electron.ipcRenderer.send('loginOrRegister', !isLogin.value);
+  isLogin.value = !isLogin.value;
+}
 </script>
 
 <style lang="scss" scoped>
-
 .email-select {
   width: 250px;
 }

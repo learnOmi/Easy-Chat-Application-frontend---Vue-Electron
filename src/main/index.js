@@ -7,9 +7,10 @@ const login_width = 300;
 const login_height = 370;
 const register_height = 490;
 
+let mainWindow;
 function createWindow() {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: login_width,
     height: login_height,
     show: false,
@@ -20,6 +21,7 @@ function createWindow() {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
+      contextIsolation: true,
       sandbox: false
     }
   })
@@ -41,7 +43,7 @@ function createWindow() {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  if (is.dev){
+  if (is.dev) {
     mainWindow.webContents.openDevTools();
   }
 }
@@ -58,6 +60,17 @@ app.whenReady().then(() => {
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
+  })
+
+  // 登陆或注册
+  ipcMain.on('loginOrRegister', (e, isLogin) => {
+    mainWindow.setResizable(true)
+    if (isLogin) {
+      mainWindow.setSize(login_width, login_height)
+    } else {
+      mainWindow.setSize(login_width, register_height)
+    }
+    mainWindow.setResizable(false)
   })
 
   // IPC test
