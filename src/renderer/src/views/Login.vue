@@ -1,22 +1,18 @@
 <template>
   <div class="login-panel">
-    <div class="title drag">{{isLogin?'登录':'注册'}}</div>
+    <div class="title drag">{{ isLogin ? '登录' : '注册' }}</div>
     <div class="login-form">
-      <div class="error-ms"></div>
-      <el-form
-        :model="formData"
-        :rules="rules"
-        ref="formDataRef"
-        label-width="0px"
-        @submit.prevent
-      >
+      <div class="error-ms">{{ errorMS }}</div>
+      <el-form :model="formData" ref="formDataRef" label-width="0px" @submit.prevent>
         <!--input输入-->
         <el-form-item prop="email">
           <el-input
             size="large"
             clearable
             placeholder="请输入邮箱"
+            maxLength="30"
             v-model.trim="formData.email"
+            @focus="clearVerify"
           >
             <template #prefix><icon class="iconfont icon-youxiang" /></template>
           </el-input>
@@ -26,7 +22,9 @@
             size="large"
             clearable
             placeholder="请输入昵称"
+            maxLength="15"
             v-model.trim="formData.nickname"
+            @focus="clearVerify"
           >
             <template #prefix><icon class="iconfont icon-geren" /></template>
           </el-input>
@@ -38,6 +36,7 @@
             show-password
             placeholder="请输入密码"
             v-model.trim="formData.password"
+            @focus="clearVerify"
           >
             <template #prefix><icon class="iconfont icon-quanxian" /></template>
           </el-input>
@@ -47,8 +46,9 @@
             size="large"
             clearable
             show-password
-            placeholder="请再次输入密码"
             v-model.trim="formData.repassword"
+            placeholder="请再次输入密码"
+            @focus="clearVerify"
           >
             <template #prefix><icon class="iconfont icon-quanxian" /></template>
           </el-input>
@@ -60,15 +60,20 @@
             show-password
             placeholder="请输入验证码"
             v-model.trim="formData.checkcode"
+            @focus="clearVerify"
           >
             <template #prefix><icon class="iconfont icon-anquan" /></template>
           </el-input>
         </el-form-item>
         <el-form-item prop="">
-          <el-button type="primary" class="login-btn" @click="">{{isLogin? '登录': '注册'}}</el-button>
+          <el-button type="primary" class="login-btn" @click="submit">{{
+            isLogin ? '登录' : '注册'
+          }}</el-button>
         </el-form-item>
         <div class="bottom-link">
-          <span class="a-link" href="javascript:void(0)" @click="changeOpType">{{isLogin? '没有账号?': '已有账号'}}</span>
+          <span class="a-link" href="javascript:void(0)" @click="changeOpType">{{
+            isLogin ? '没有账号?' : '已有账号'
+          }}</span>
         </div>
       </el-form>
     </div>
@@ -76,19 +81,74 @@
 </template>
 
 <script setup>
-import { ref, reactive, getCurrentInstance, nextTick } from "vue";
-const { proxy } = getCurrentInstance();
+import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
+const { proxy } = getCurrentInstance()
 
-const formData = ref({});
-const formDataRef = ref();
-const rules = {
-  title: [{ required: true, message: "请输入内容" }],
-};
+const formData = ref({})
+const formDataRef = ref()
+const errorMS = ref('')
+const isLogin = ref(true)
 
-const isLogin = ref(true);
 const changeOpType = () => {
-  window.electron.ipcRenderer.send('loginOrRegister', !isLogin.value);
-  isLogin.value = !isLogin.value;
+  window.electron.ipcRenderer.send('loginOrRegister', !isLogin.value)
+  isLogin.value = !isLogin.value
+  nextTick(() => {
+    formDataRef.value.resetFields()
+    clearVerify()
+  })
+}
+
+const submit = () => {
+  // formDataRef.value.validate(async (valid) => {
+  //   if (valid) {
+  //     window.electron.ipcRenderer.send('loginOrRegister', formData.value);
+  //   } else {
+  //     return ;
+  //   }
+  // });
+  clearVerify()
+  if (!checkValue('checkEmail', formData.value.email, '请输入正确的邮箱')) {
+    return
+  }
+
+  if (!isLogin.value && !checkValue('', formData.value.nickname, '请输入昵称')) {
+    return
+  }
+
+  if (
+    !checkValue('checkPassword', formData.value.password, '密码只能是数字、字母、特殊字符8-16位')
+  ) {
+    return
+  }
+
+  if (!isLogin.value && formData.value.password !== formData.value.repassword) {
+    errorMS.value = '两次密码输入不一致'
+    return
+  }
+
+  if (!checkValue('', formData.value.checkcode, '请输入正确的验证码')) {
+    return
+  }
+}
+
+const checkValue = (type, value, msg) => {
+  // 判空
+  if (proxy.Utils.isEmpty(value)) {
+    errorMS.value = msg
+    return false
+  }
+
+  // 类型校验；type 和 Verify 中的函数对应使用
+  if (type && !proxy.Verify[type](value)) {
+    errorMS.value = msg
+    return false
+  }
+
+  return true
+}
+
+const clearVerify = () => {
+  errorMS.value = ''
 }
 </script>
 
