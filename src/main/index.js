@@ -3,13 +3,20 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
+const login_width = 300;
+const login_height = 370;
+const register_height = 490;
+
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: login_width,
+    height: login_height,
     show: false,
-    autoHideMenuBar: false,
+    autoHideMenuBar: true,
+    titleBarStyle: "hidden",
+    resizable: false,
+    frame: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -32,6 +39,10 @@ function createWindow() {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+
+  if (is.dev){
+    mainWindow.webContents.openDevTools();
   }
 }
 
